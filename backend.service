@@ -1,0 +1,14 @@
+[Unit]
+Description=This unit will start after internet connection
+After=network.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/compute/backend
+Restart=always
+Type=simple
+ExecStart=bash -c 'find /compute/backend | entr -r /compute/backend/server.py'
+Environment=
+
+[Install]
+WantedBy=multi-user.target

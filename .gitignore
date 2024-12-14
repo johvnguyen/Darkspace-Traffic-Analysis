@@ -1,0 +1,11 @@
+**/*.json
+**/*.pcap
+**/*.csv
+**/*.pyc
+pcap_analysis/csv_output
+pcap_analysis/json_output
+pcap_analysis/pcap_output
+pcap_analysis/telescopesampleanon
+**/__pycache__/
+python/
+pcap_analysis.tar.zst

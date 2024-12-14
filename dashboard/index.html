@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Darkspace Traffic Visualization</title>
+  <style>
+    /* Overall body styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #cce7ff;
+      color: #003366;
+      margin: 0;
+      padding: 20px;
+    }
+
+    /* Full-width centered header */
+    .header {
+      text-align: center;
+      font-size: 45px;
+      font-weight: bold;
+      color: black;
+      margin-bottom: 20px;
+    }
+
+    /* Main container styling */
+    .dashboard-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    /* Left section styling */
+    .left-section {
+      width: 30%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    /* Headings outside of the white box */
+    .heading {
+      font-size: 24px;
+      color: black;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    /* Content boxes */
+    .content-box {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .description p {
+      font-size: 12px;
+      line-height: 1.5;
+      color: black;
+    }
+
+    /* Features section */
+    .checkbox-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .checkbox-container label {
+      color: black;
+    }
+
+    /* Center section styling */
+    .center-section {
+      width: 65%;
+    }
+
+    .dropdown-row {
+      display: flex;
+      justify-content: space-evenly;
+      margin-bottom: 20px;
+      align-items: center;
+      /* justify-content:flex-start; */
+      gap:20px;
+
+
+    }
+
+    .dropdown-container {
+      text-align: left;
+    }
+
+    input[type="text"] {
+      width: 75%;
+      height:10px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      outline: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    select {
+      width: 200px;
+      font-size: 16px;
+      /* padding: 10px 15px; */
+      outline: none;
+      padding: 5px;
+      border-radius: 4px;
+      border: 2px solid #ccc;
+        }
+
+    /* Stack the labels */
+    .stacked-label {
+      font-size: 20px;
+      color: black;
+      font-weight: bold;
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+
+
+
+    /* Scatter Plot Area */
+    .chart-container {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+      text-align: center;
+      min-width: 800px;
+      min-height:  800px;
+      max-height:fit-content;
+    }
+
+    /* Small Chart Area */
+    .small-chart-container {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      height: 157px;
+    }
+
+    td {
+      text-align: center;
+      vertical-align: middle;
+    }
+  </style>
+  <!-- Include D3.js and Chart.js Libraries -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.25.6/d3-legend.min.js"></script>
+</head>
+
+<body>
+  <div class="header">Darkspace Traffic Visualization</div>
+
+  <div class="dashboard-container">
+    <!-- Left Section: Project Description and Features -->
+    <div class="left-section">
+      <div class="heading">Project Description</div>
+      <div class="content-box description">
+        <p>Malicious online activities like Distributed Denial of Service (DDOS) attacks and the spread of
+          internet worms can cause significant disruptions for users and administrators. Cybersecurity
+          researchers, network administrators and others interested in preventing malware have long sought
+          effective methods to detect such activities. Network traffic visualization has the potential to
+          greatly assist in the labeling and classification of such data, yet academic literature on this
+          subject is scarce. Our project aims to evaluate the effectiveness of data visualization techniques
+          from big data and machine learning to visualize, cluster, and classify darkspace network traffic.
+        </p>
+      </div>
+      <div class="heading">Features</div>
+      <div class="content-box checkbox-container">
+        <label><input type="checkbox" value="timeslice" checked> Timeslice</label>
+        <label><input type="checkbox" value="src_ip_int"> Source IP</label>
+        <label><input type="checkbox" value="seconds_since_midnight"> Seconds Since Midnight</label>
+        <label><input type="checkbox" value="duration" checked> Duration</label>
+        <label><input type="checkbox" value="tcp_proportion" checked> TCP Proportion</label>
+        <label><input type="checkbox" value="udp_proportion" checked> UDP Proportion</label>
+        <label><input type="checkbox" value="icmp_proportion" checked> ICMP Proportion</label>
+        <label><input type="checkbox" value="tcp_init_proportion" checked> TCP Initiation Proportion</label>
+        <label><input type="checkbox" value="icmp_init_proportion" checked> ICMP Initiation Proportion</label>
+        <label><input type="checkbox" value="packet_length_shannon_entropy" checked> Packet Length: Entropy</label>
+        <label><input type="checkbox" value="min_packet_length"> Packet Length: Min</label>
+        <label><input type="checkbox" value="max_packet_length"> Packet Length: Max</label>
+        <label><input type="checkbox" value="avg_packet_length" checked> Packet Length: Average</label>
+        <label><input type="checkbox" value="std_dev_packet_length" checked> Packet Length: STD</label>
+        <label><input type="checkbox" value="n_packets" checked> Number of Packets</label>
+        <label><input type="checkbox" value="packet_volume" checked> Packet Volume</label>
+        <label><input type="checkbox" value="n_src_ports" checked> Number of Source Ports</label>
+        <label><input type="checkbox" value="n_dest_ports" checked> Number of Destination Ports</label>
+        <label><input type="checkbox" value="n_destination_ips" checked> Number of Destination IPs</label>
+        <label><input type="checkbox" value="n_TTLs" checked> Number of TTLs</label>
+        <label><input type="checkbox" value="only_unknowns"> Only Unknowns</label>
+        <label><input type="checkbox" value="min2packets"> Timeslices With At Least 2 Packets</label>
+        <!-- <label><input type="checkbox"> Percentage of: IsZMAP</label>
+        <label><input type="checkbox"> Percentage of: IsMasscan</label>
+        <label><input type="checkbox"> Percentage of: IsMirai</label>
+        <label><input type="checkbox"> Percentage of: IsBogon</label>
+        <label><input type="checkbox"> Percentage of: Known Scanner</label> -->
+      </div>
+      <!-- Added Cluster Table -->
+      <div class="content-box" id="cluster-table-container">
+        <table id="cluster-table" border="1" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>Cluster</th>
+              <th>Number of Points</th>
+              <th>Mean X</th>
+              <th>Mean Y</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Center Section: Controls and Scatter Plot -->
+    <div class="center-section">
+      <div class="dropdown-row">
+        <div>
+          <div class="stacked-label">Backend<br>URL</div>
+          <input type="text" id="backend_url_selector" value="http://localhost:8081"></input>
+        </div>
+        <div class="dropdown-container">
+          <div class="stacked-label">Coloring<br>Selector</div>
+          <select id="coloring_selector" value="Clustering">
+            <option>Clusters</option>
+            <option>Timeslice</option>
+            <option>Source IP</option>
+            <option>Seconds Since Midnight</option>
+            <option>Duration</option>
+            <option>TCP Proportion</option>
+            <option>UDP Proportion</option>
+            <option>ICMP Proportion</option>
+            <option>TCP Init Proportion</option>
+            <option>ICMP Init Proportion</option>
+            <option>Packet Length: Entropy</option>
+            <option>Packet Length: Min</option>
+            <option>Packet Length: Max</option>
+            <option>Packet Length: Average</option>
+            <option>Packet Length: STD</option>
+            <option>Packet Volume</option>
+            <option>Number of Packets</option>
+            <option>Number of Destination IPs</option>
+            <option>Number of Source Ports</option>
+            <option>Number of Destination Ports</option>
+            <option>Number of TTLs</option>
+            <!-- <option>Known Scanner</option>
+            <option>Autonomous System</option> -->
+          </select>
+        </div>
+
+        <div >
+          <div class="stacked-label" ><br></div>
+          <button class="button" id="getbutton"
+          style="background-color: #003366; color: white;
+          border: none; padding: 10px 20px;
+          font-size: 16px; font-weight: bold; border-radius: 5px;
+          cursor: pointer;"
+          onmouseover="this.style.backgroundColor='#0056b3';"
+          onmouseout="this.style.backgroundColor='#003366';"
+
+          >
+            Compute Transformation
+          </button>
+        </div>
+
+        <div>
+          <div class="dropdown-row" style="width: 200px;"></div>
+          </div>
+      </div>
+      <div class="dropdown-row">
+        <div class="dropdown-container">
+          <div class="stacked-label">Dimension<br>Reduction</div>
+          <select id="reduction_selector">
+            <option>PCA</option>
+            <option>UMAP</option>
+            <option>t-SNE</option>
+            <option>None</option>
+          </select>
+        </div>
+        <div class="dropdown-container">
+          <div class="stacked-label">Clustering<br>Algorithm</div>
+          <select id="clustering_selector">
+            <option>Heuristic Labels</option>
+            <option>KMeans</option>
+            <option>Agglomerative Clustering</option>
+            <option>HDBSCAN</option>
+            <option>None</option>
+          </select>
+        </div>
+        <div>
+          <div class="stacked-label">First<br>Timeslice</div>
+          <input type="text" id="timeslice_minimum_selector" value="0d"></input>
+        </div>
+        <div>
+          <div class="stacked-label">Sample<br>Percent</div>
+          <input type="text" id="percent_selector" value="100"></input>
+        </div>
+      </div>
+      <div class="dropdown-row">
+        <div>
+          <div class="stacked-label">Reduction<br>Hyperparameter</div>
+          <input type="text" id="rparameter_selector" value="30"></input>
+        </div>
+        <div>
+          <div class="stacked-label">Clustering<br>Parameter</div>
+          <input type="text" id="cparameter_selector" value="5"></input>
+        </div>
+        <div>
+          <div class="stacked-label">Timeslice<br>Length</div>
+          <input type="text" id="timeslice_offset_selector" value="7d"></input>
+        </div>
+        <div>
+          <div class="stacked-label">Max Number<br>of Samples</div>
+          <input type="text" id="samples_selector" value="40000"></input>
+        </div>
+      </div>
+      <div class="chart-container" id="chart-container">
+        <svg id="svg-container"></svg>
+      </div>
+      <!-- Added Packets Table -->
+      <div class="content-box" id="packets-table-container">
+        <table id="packets-table" border="1" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <!-- For timeslices -->
+              <!-- <th>Label</th>
+              <th>Timestamp</th>
+              <th>Source IP</th>
+              <th>Duration</th>
+              <th>TCP/ICMP/UDP Proportion</th>
+              <th>TCP/ICMP Init Proportion</th>
+              <th>Packet Length: Average/STD/Entropy</th>
+              <th># of Packets</th>
+              <th># of Destination IPs</th>
+              <th>Netacq/Maxmind Country/ASN</th> -->
+
+              <th>Timeslice ID</th>
+              <th>Timeslice</th>
+              <!-- <th>Label</th> -->
+              <th>Timeslice Packets</th>
+              <th>Timeslice Duration</th>
+              <th>Source IP:Port</th>
+              <th>Dest IP:Port</th>
+              <th>TCP/ICMP/UDP</th>
+              <th>Is Init?</th>
+              <th>TTL</th>
+              <th>Packet Length</th>
+              <th>Netacq/Maxmind Country/ASN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be dynamically added here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var chart;
+
+    window.onload = function () {
+      // if this is the production one, use the production backend url
+      if (window.location.href == "http://ifr0.mod.deterlab.net/ingresscompute.project.cse6242team175/node/8080/") {
+        document.getElementById('backend_url_selector').value = "http://ifr0.mod.deterlab.net:80/ingresscompute.project.cse6242team175/node/8081/"
+      }
+    }
+
+    document.getElementById('coloring_selector').addEventListener('change', (event) => {
+      draw();
+    });
+
+    document.getElementById('clustering_selector').addEventListener('change', (event) => {
+      coloring_selector.value = 'Clusters'
+    });
+
+    document.getElementById('cparameter_selector').addEventListener('change', (event) => {
+      if (document.getElementById('clustering_selector').value == 'Heuristic Labels') {
+        draw();
+      }
+    });
+
+    function nformat(f) {
+      return f.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+    }
+
+    var response_data;
+
+    // Function to get checked checkbox values
+    function getCheckedValues() {
+      const checkedValues = [];
+
+      // Get all checkboxes within the checkbox container
+      const checkboxes = document.querySelectorAll('.checkbox-container input[type="checkbox"]:checked');
+
+      // Loop through each checked checkbox and add its value to the array
+      checkboxes.forEach(function (checkbox) {
+        checkedValues.push(checkbox.value);
+      });
+
+      return checkedValues;
+    }
+
+    // Function to fetch and display scatter plot data
+    function fetchScatterPlotData() {
+      const reduction_mapper = {
+        'PCA': 'pca',
+        'UMAP': 'umap',
+        't-SNE': 'tsne',
+        'None': 'none'
+      };
+
+      const clustering_mapper = {
+        'KMeans': 'kmeans',
+        'Agglomerative Clustering': 'agglo',
+        'HDBSCAN': 'hdbscan',
+        'Heuristic Labels': 'known',
+        'None': 'none'
+      };
+
+      const body = JSON.stringify({
+        reduction: reduction_mapper[document.getElementById('reduction_selector').value],
+        clustering: clustering_mapper[document.getElementById('clustering_selector').value],
+        reduction_parameter: document.getElementById('rparameter_selector').value,
+        clustering_parameter: document.getElementById('cparameter_selector').value,
+        max_samples: document.getElementById('samples_selector').value,
+        percent_samples: document.getElementById('percent_selector').value,
+        min_timeslice: document.getElementById('timeslice_minimum_selector').value,
+        off_timeslice: document.getElementById('timeslice_offset_selector').value,
+        min_duration: 0,
+        off_duration: 0,
+        features: getCheckedValues()
+      });
+
+      var url = document.getElementById('backend_url_selector').value + '/transformation';
+      url = url.replace(/([^:]\/)\/+/g, '$1');
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: body,
+      })
+        .then(response => response.json())
+        .then(data => { response_data = data; draw() })
+    }
+
+    var btn = document.getElementById("getbutton");
+    btn.addEventListener("click", fetchScatterPlotData);
+
+    window.addEventListener('resize', function (event) {
+      draw();
+    }, true);
+
+    function draw() {
+      if (response_data == undefined) {
+        return
+      }
+
+      if (response_data.error) {
+        window.alert('Error fetching data: ' + response_data.error);
+        return;
+      }
+
+      if (response_data.detail !== undefined) {
+        for (const e of response_data.detail) {
+          if (e.input !== undefined) {
+            window.alert(`Error fetching data: ${e.loc.at(-1)}: ${e.msg}, input: ${e.input}`)
+          } else {
+            window.alert(`Error fetching data: ${e.loc.at(-1)}: ${e.msg}`)
+          }
+        }
+        return
+      }
+
+      // Set up the dimensions of the bounding div
+      const sizes = document.getElementById('chart-container').getBoundingClientRect();
+      const true_margin = { top: 20, right: 20, bottom: 20, left: 10 };
+      const true_width = sizes.width - true_margin.left - true_margin.right;
+      const true_height = sizes.height - true_margin.top - true_margin.bottom;
+
+      // Set up the dimensions of the actual chart bounding div
+      const margin = { top: 40, right: 300, bottom: 60, left: 80 };
+      const width = true_width - margin.left - margin.right;
+      const height = true_height - margin.top - margin.bottom;
+
+      // Create x and y scales
+      const xScale = d3.scaleLinear()
+        .domain([d3.min(response_data.data.reduced_x), d3.max(response_data.data.reduced_x)])
+        .range([0, width]);
+
+      const yScale = d3.scaleLinear()
+        .domain([d3.min(response_data.data.reduced_y), d3.max(response_data.data.reduced_y)])
+        .range([height, 0]);
+
+      var data = [];
+      let d = response_data.data
+      for (let i = 0; i < d.length; i++) {
+        data.push({
+          x: d.reduced_x[i],
+          y: d.reduced_y[i],
+
+          scale_x: xScale(d.reduced_x[i]),
+          scale_y: yScale(d.reduced_y[i]),
+
+          timestamp: d.timestamp[i],
+          date: d.date[i],
+          src_ip: d.src_ip[i],
+          src_ip_int: d.src_ip_int[i],
+          duration: d.duration[i],
+          seconds_since_midnight: d.seconds_since_midnight[i],
+          min_packet_length: d.min_packet_length[i],
+          max_packet_length: d.max_packet_length[i],
+          avg_packet_length: d.avg_packet_length[i],
+          std_dev_packet_length: d.std_dev_packet_length[i],
+          packet_length_shannon_entropy: d.packet_length_shannon_entropy[i],
+          udp_proportion: d.udp_proportion[i],
+          tcp_proportion: d.tcp_proportion[i],
+          icmp_proportion: d.icmp_proportion[i],
+          tcp_init_proportion: d.tcp_init_proportion[i],
+          icmp_init_proportion: d.icmp_init_proportion[i],
+          n_destination_ips: d.n_destination_ips[i],
+          n_packets: d.n_packets[i],
+          n_TTLs: d.n_TTLs[i],
+          n_src_ports: d.n_src_ports[i],
+          n_dest_ports: d.n_dest_ports[i],
+          packet_volume: d.packet_volume[i],
+          id: d.id[i],
+          KnownScanner: d.KnownScanner[i],
+          NetacqCountry: d.NetacqCountry[i],
+          MaxmindCountry: d.MaxmindCountry[i],
+          ASN: d.ASN[i],
+
+          label: response_data.possible_labels[d.labels[i]],
+          label_index: d.labels[i]
+        });
+      }
+
+      // Clear chart
+      d3.select("svg").selectAll("*").remove();
+
+      // Create the SVG container and apply margin
+      const svg = d3.select("svg")
+        .attr("width", true_width)
+        .attr("height", true_height)
+        .append("g")
+        .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+      // title text
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", -margin.top / 2)
+        .attr("text-anchor", "middle")
+        .text(response_data.title);
+
+      // x axis text
+      svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 20)
+        .attr("text-anchor", "middle")
+        .text(response_data.x_label);
+
+      // y axis text
+      svg.append("text")
+        .attr("x", -height / 2)
+        .attr("y", -margin.left / 2 - 10)
+        .attr("text-anchor", "middle")
+        .attr("transform", "rotate(-90)")
+        .text(response_data.y_label);
+
+      let selector = document.getElementById('coloring_selector').value;
+      let getColoringSelector = function () {
+
+        switch (selector) {
+          case 'Clusters':
+            if (response_data.clustering == 'hdbscan') {
+              if (response_data.possible_labels.length > 10) {
+                return [(d => d.label_index), [...Array(response_data.possible_labels.length).keys()]];
+              }
+            }
+
+            return [(d => d.label), response_data.possible_labels]
+          case 'Timeslice':
+            return [(d => d.timestamp), d.timestamp]
+          case 'Source IP':
+            return [(d => d.src_ip_int), d.src_ip_int]
+          case 'Seconds Since Midnight':
+            return [(d => d.seconds_since_midnight), d.seconds_since_midnight]
+          case 'Duration':
+            return [(d => d.duration), d.duration]
+          case 'TCP Proportion':
+            return [(d => d.tcp_proportion), d.tcp_proportion]
+          case 'UDP Proportion':
+            return [(d => d.udp_proportion), d.udp_proportion]
+          case 'ICMP Proportion':
+            return [(d => d.icmp_proportion), d.icmp_proportion]
+          case 'TCP Init Proportion':
+            return [(d => d.tcp_init_proportion), d.tcp_init_proportion]
+          case 'ICMP Init Proportion':
+            return [(d => d.icmp_init_proportion), d.icmp_init_proportion]
+          case 'Packet Length: Entropy':
+            return [(d => d.packet_length_shannon_entropy), d.packet_length_shannon_entropy]
+          case 'Packet Length: Min':
+            return [(d => d.min_packet_length), d.min_packet_length]
+          case 'Packet Length: Max':
+            return [(d => d.max_packet_length), d.max_packet_length]
+          case 'Packet Length: Average':
+            return [(d => d.avg_packet_length), d.avg_packet_length]
+          case 'Packet Length: STD':
+            return [(d => d.std_dev_packet_length), d.std_dev_packet_length]
+          case 'Packet Volume':
+            return [(d => d.packet_volume), d.packet_volume]
+          case 'Number of Packets':
+            return [(d => d.n_packets), d.n_packets]
+          case 'Number of Destination IPs':
+            return [(d => d.n_destination_ips), d.n_destination_ips]
+          case 'Number of Source Ports':
+            return [(d => d.n_src_ports), d.n_src_ports]
+          case 'Number of Destination Ports':
+            return [(d => d.n_dest_ports), d.n_dest_ports]
+          case 'Number of TTLs':
+            return [(d => d.n_TTLs), d.n_TTLs]
+          case 'Known Scanner':
+            return [(d => d.KnownScanner), d.KnownScanner]
+          case 'Autonomous System':
+            return [(d => d.ASN), d.ASN]
+        }
+
+        throw new Error(`${type} does not have a matching statement!`)
+      }
+
+      let getUniqueValueMapping = function (max_elements, arr) {
+        const m = {};
+
+        let i_off = 0;
+        for (let i = 0; i < arr.length; i++) {
+          if (response_data.clustering == 'hdbscan' && selector == 'Clusters' && arr[i] == 'HDBSCAN Noise') {
+            i_off = -1;
+          }
+
+          m[arr[i]] = i + i_off;
+
+          if (Object.keys(m).length >= max_elements) {
+            return null;
+          }
+        }
+
+        if (selector == 'Clusters') {
+          return m;
+        }
+
+        const sortedKeys = Object.keys(m).map(Number).sort();
+
+        const sorted = {};
+        sortedKeys.forEach((key, i) => {
+          sorted[key] = i;
+        });
+
+        return sorted
+      }
+
+      const [getFunc, data_col] = getColoringSelector();
+      const indexMapping = getUniqueValueMapping(10, data_col);
+      const dmin = d3.min(data_col);
+      const dmax = d3.max(data_col);
+      let linearscaler = function (d) {
+        return (d - dmin) / (dmax - dmin);
+      }
+
+
+      // Create color scales
+      let color_node = function (d, raw_value = false) {
+        let i = getFunc(d);
+        if (raw_value) {
+          i = d;
+        }
+
+        if (response_data.clustering == 'hdbscan' && selector == 'Clusters') {
+          if (d.label_index == 0) {
+            return '#000000'
+          }
+        }
+
+        if (indexMapping) {
+          if (selector == 'Clusters' || Object.keys(indexMapping).length <= 2) {
+            return d3.schemeCategory10[indexMapping[i]];
+          }
+
+          if (dmin != 0 || dmax != 1) {
+            return d3.interpolateBlues(0.4 + linearscaler(i) * 0.6);
+          }
+        }
+
+        return d3.interpolateSpectral(linearscaler(i));
+      }
+
+      var legend;
+
+      // create legend
+      if (indexMapping && (dmin != 0 || dmax != 1)) {
+        // just create a swatch of 10
+
+        var ordinal = d3.scaleOrdinal()
+          .domain(Object.keys(indexMapping))
+          .range(Object.keys(indexMapping).map(k => color_node(k, true)));
+
+        legend = svg.append("g")
+          .attr("class", "legendOrdinal")
+          .attr("id", "legend");
+
+        legend.attr("transform", `translate(${width + 60}, 0)`);
+
+        var legendOrdinal = d3.legendColor()
+          //d3 symbol creates a path-string, for example
+          //"M0,-8.059274488676564L9.306048591020996,
+          //8.059274488676564 -9.306048591020996,8.059274488676564Z"
+          .shape("path", d3.symbol().type(d3.symbolCircle).size(150)())
+          .shapePadding(10)
+          //use cellFilter to hide the "e" cell
+          .cellFilter(function (d) { return d.label !== "e" })
+          .scale(ordinal);
+
+        svg.select(".legendOrdinal")
+          .call(legendOrdinal);
+
+      } else {
+        // create a continuous scale
+        var hdbscan_offset = 0;
+
+        if (selector == 'Clusters' && response_data.clustering == 'hdbscan') {
+          hdbscan_offset = 60;
+
+          var ordinal = d3.scaleOrdinal()
+            .domain([response_data.possible_labels[0]])
+            .range(['#000000']);
+
+
+          legend = svg.append("g")
+            .attr("class", "legendOrdinal")
+            .attr("id", "hdbscan-noise-legend");
+
+          legend.attr("transform", `translate(${width + 60}, 0)`);
+
+          var legendOrdinal = d3.legendColor()
+            //d3 symbol creates a path-string, for example
+            //"M0,-8.059274488676564L9.306048591020996,
+            //8.059274488676564 -9.306048591020996,8.059274488676564Z"
+            .shape("path", d3.symbol().type(d3.symbolCircle).size(150)())
+            .shapePadding(10)
+            //use cellFilter to hide the "e" cell
+            .cellFilter(function (d) { return d.label !== "e" })
+            .scale(ordinal);
+
+          svg.select(".legendOrdinal")
+            .call(legendOrdinal);
+        }
+
+        legend = Legend(svg, d3.scaleSequential([dmin, dmax], d3.interpolateSpectral), {
+          title: `${selector} Coloring`,
+          width: margin.right - 80
+        });
+
+        legend
+          .attr("id", "legend")
+          .attr("transform", `translate(${width + 60}, ${hdbscan_offset})`);
+      }
+
+      // Add x-axis
+      svg.append("g")
+        .attr("class", "x-axis")
+        .attr("transform", `translate(0,${height})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll("text")
+        .style("font-size", "12px");
+
+      // Add y-axis
+      svg.append("g")
+        .attr("class", "y-axis")
+        .call(d3.axisLeft(yScale))
+        .selectAll("text")
+        .style("font-size", "12px");
+
+      const sorted_data = data.slice().sort((a, b) => {
+        let [x, y] = [getFunc(a), getFunc(b)];
+        if (selector == 'Clusters') {
+          [x, y] = [a.label_index, b.label_index];
+        }
+
+        if (x == y) {
+          return 0;
+        }
+
+        if (selector == 'Clusters' && response_data.clustering == 'known') {
+          let new_highest = parseInt(document.getElementById('cparameter_selector').value, 10);
+          new_highest = new_highest % response_data.possible_labels.length;
+          if (y == new_highest) {
+            return -1;
+          }
+
+          if (x == new_highest) {
+            return 1;
+          }
+        }
+
+        if (x < y) {
+          return -1;
+        }
+
+        if (x > y) {
+          return 1;
+        }
+
+        return 0;
+
+      });
+      // Create scatterplot points
+      svg.selectAll(".dot")
+        .data(sorted_data)
+        .enter().append("circle")
+        .attr("class", "dot")
+        .attr("cx", d => d.scale_x)
+        .attr("cy", d => d.scale_y)
+        .attr("r", 5)
+        .style("fill", d => color_node(d))
+        .style("opacity", 1);
+
+      // remove previous tooltips
+      const prevtooltip = document.getElementById("tooltip");
+      if (prevtooltip != null) {
+        prevtooltip.remove();
+      }
+
+      // Tooltips to show points and their metadata
+      const tooltip = d3.select("body").append("div")
+        .attr("id", "tooltip")
+        .attr("class", "tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background-color", "rgba(0, 0, 0, 0.7)")
+        .style("color", "white")
+        .style("border-radius", "4px")
+        .style("padding", "5px")
+        .style("font-size", "12px");
+
+      // svg.selectAll(".dot")
+      //   .on("mouseover", function(d, event) {
+      //     const data = d.srcElement.__data__;
+
+      //     const sx = data.x.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+      //     const sy = data.y.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 });
+
+      //     var text = data.label
+      //     text += `<br>x: ${sx}`
+      //     text += `<br>y: ${sy}`
+      //     text += `<br>Timestamp: ${data.timestamp}`
+      //     text += `<br>Source IP: ${data.src_ip}`
+      //     text += `<br>Duration: ${data.duration}`
+      //     text += `<br>TCP Proportion: ${data.tcp_proportion}`
+      //     text += `<br>UDP Proportion: ${data.udp_proportion}`
+      //     text += `<br>ICMP Proportion: ${data.icmp_proportion}`
+      //     text += `<br>Packet Length/Entropy: ${data.packet_length_shannon_entropy}`
+      //     text += `<br>Packet Length/Average: ${data.avg_packet_length}`
+      //     text += `<br>Packet Length/Min: ${data.min_packet_length}`
+      //     text += `<br>Packet Length/Max: ${data.max_packet_length}`
+      //     text += `<br>Packet Length/STD: ${data.std_dev_packet_length}`
+      //     text += `<br>Number of Packets: ${data.n_packets}`
+      //     text += `<br>Number of Destination IPs: ${data.n_destination_ips}`
+      //     text += `<br>NetacqCountry: ${data.NetacqCountry}`
+      //     text += `<br>MaxmindCountry: ${data.MaxmindCountry}`
+
+      //     tooltip.style("visibility", "visible")
+      //       .html(text);
+      //   })
+      //   .on("mousemove", function(event) {
+      //     tooltip.style("top", (event.pageY + 5) + "px")
+      //       .style("left", (event.pageX + 5) + "px");
+      //   })
+      //   .on("mouseout", function() {
+      //     tooltip.style("visibility", "hidden");
+      //   });
+
+      // Create the brush behavior.
+      svg.append("g").call(d3.brush().on("end", ({ selection }) => {
+        if (selection) {
+          const [[x0, y0], [x1, y1]] = selection;
+
+          let brushed = [];
+          for (let i = 0; i < data.length; i++) {
+            let d = data[i];
+            if (x0 <= d.scale_x && d.scale_x < x1 && y0 <= d.scale_y && d.scale_y < y1) {
+              brushed.push(d);
+            }
+          }
+
+          updateTable(brushed);
+        }
+      }));
+
+      // Populate the table with insights
+      const insights = [];
+      for (let i = 0; i < response_data.possible_labels.length; i++) {
+        insights.push({ count: 0, sumX: 0, sumY: 0 });
+      }
+
+      for (let i = 0; i < data.length; i++) {
+        const label = data[i].label_index;
+
+        insights[label].count += 1;
+        insights[label].sumX += data[i].x;
+        insights[label].sumY += data[i].y;
+      }
+
+      const tableBody = document.getElementById("cluster-table").querySelector("tbody");
+      tableBody.innerHTML = "";
+
+      for (let i = 0; i < insights.length; i++) {
+        const stats = insights[i];
+
+        const meanX = (stats.sumX / stats.count).toFixed(2);
+        const meanY = (stats.sumY / stats.count).toFixed(2);
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${response_data.possible_labels[i]}</td>
+          <td>${stats.count}</td>
+          <td>${meanX}</td>
+          <td>${meanY}</td>
+        `;
+
+        tableBody.appendChild(row);
+      }
+    }
+
+    function updateTable(brushed) {
+      const tableBody = document.getElementById("packets-table").querySelector("tbody");
+        tableBody.innerHTML = "";
+
+      const body = JSON.stringify({
+        ids: brushed.map(d => d.id)
+      });
+
+      var url = document.getElementById('backend_url_selector').value + '/metadata';
+      url = url.replace(/([^:]\/)\/+/g, '$1');
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: body,
+      })
+        .then(response => response.json())
+        .then(response_data => {
+            let data = response_data.data;
+            // Populate the table
+            tableBody.innerHTML = "";
+
+            for (let i = 0; i < data.length; i++) {
+              if (i > 20000) {
+                break;
+              }
+              const row = document.createElement("tr");
+                row.innerHTML = `
+                <td>${data.id[i]}</td>
+                <td>${data.date[i]}</td>
+                <td>${data.n_packets[i]}</td>
+                <td>${nformat(data.duration[i])}s</td>
+                <td>${data.src_ip[i]}:${data.src_port[i]}</td>
+                <td>${data.dest_ip[i]}:${data.dest_port[i]}</td>
+                <td>${data.protocol_type[i]}</td>
+                <td>${data.is_init[i]}</td>
+                <td>${data.ttl[i]}</td>
+                <td>${data.packet_length[i]}</td>
+                <td>${data.NetacqCountry[i]}/${data.MaxmindCountry[i]}/${data.SrcASN[i]}</td>
+              `;
+
+              tableBody.appendChild(row);
+            }
+
+            // for (let i = 0; i < brushed.length; i++) {
+            //   let d = brushed[i];
+
+            //   const row = document.createElement("tr");
+            //   row.innerHTML = `
+            //   <td>${d.label}</td>
+            //   <td>${d.date}</td>
+            //   <td>${d.src_ip}</td>
+            //   <td>${nformat(d.duration)}</td>
+            //   <td>${nformat(d.tcp_proportion)}/${nformat(d.icmp_proportion)}/${nformat(d.udp_proportion)}</td>
+            //   <td>${nformat(d.tcp_init_proportion)}/${nformat(d.icmp_init_proportion)}</td>
+            //   <td>${nformat(d.avg_packet_length)}/${nformat(d.std_dev_packet_length)}/${nformat(d.packet_length_shannon_entropy)}</td>
+            //   <td>${d.n_packets}</td>
+            //   <td>${d.n_destination_ips}</td>
+            //   <td>${d.NetacqCountry}/${d.MaxmindCountry}/${d.ASN}</td>
+            // `;
+            //   tableBody.appendChild(row);
+            // }
+        });
+
+    };
+
+
+    // Copyright 2021, Observable Inc.
+    // Released under the ISC license.
+    // https://observablehq.com/@d3/color-legend
+    function Legend(root, color, {
+      title,
+      tickSize = 6,
+      width = 320,
+      height = 32 + tickSize,
+      marginTop = 0,
+      marginRight = 0,
+      marginBottom = 16 + tickSize,
+      marginLeft = 0,
+      ticks = width / 64,
+      tickFormat,
+      tickValues
+    } = {}) {
+
+      function ramp(color, n = 256) {
+        const canvas = document.createElement("canvas");
+        canvas.width = n;
+        canvas.height = 1;
+        const context = canvas.getContext("2d");
+        for (let i = 0; i < n; ++i) {
+          context.fillStyle = color(i / (n - 1));
+          context.fillRect(i, 0, 1, 1);
+        }
+        return canvas;
+      }
+
+      let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
+      let x;
+
+      let svg = root.append("g");
+
+      // Continuous
+      if (color.interpolate) {
+        const n = Math.min(color.domain().length, color.range().length);
+
+        x = color.copy().rangeRound(d3.quantize(d3.interpolate(marginLeft, width - marginRight), n));
+
+        svg.append("image")
+          .attr("x", marginLeft)
+          .attr("y", marginTop)
+          .attr("width", width - marginLeft - marginRight)
+          .attr("height", height - marginTop - marginBottom)
+          .attr("preserveAspectRatio", "none")
+          .attr("xlink:href", ramp(color.copy().domain(d3.quantize(d3.interpolate(0, 1), n))).toDataURL());
+      }
+
+      // Sequential
+      else if (color.interpolator) {
+        x = Object.assign(color.copy()
+          .interpolator(d3.interpolateRound(marginLeft, width - marginRight)),
+          { range() { return [marginLeft, width - marginRight]; } });
+
+        svg.append("image")
+          .attr("x", marginLeft)
+          .attr("y", marginTop)
+          .attr("width", width - marginLeft - marginRight)
+          .attr("height", height - marginTop - marginBottom)
+          .attr("preserveAspectRatio", "none")
+          .attr("xlink:href", ramp(color.interpolator()).toDataURL());
+
+        // scaleSequentialQuantile doesn’t implement ticks or tickFormat.
+        if (!x.ticks) {
+          if (tickValues === undefined) {
+            const n = Math.round(ticks + 1);
+            tickValues = d3.range(n).map(i => d3.quantile(color.domain(), i / (n - 1)));
+          }
+          if (typeof tickFormat !== "function") {
+            tickFormat = d3.format(tickFormat === undefined ? ",f" : tickFormat);
+          }
+        }
+      }
+
+      // Threshold
+      else if (color.invertExtent) {
+        const thresholds
+          = color.thresholds ? color.thresholds() // scaleQuantize
+            : color.quantiles ? color.quantiles() // scaleQuantile
+              : color.domain(); // scaleThreshold
+
+        const thresholdFormat
+          = tickFormat === undefined ? d => d
+            : typeof tickFormat === "string" ? d3.format(tickFormat)
+              : tickFormat;
+
+        x = d3.scaleLinear()
+          .domain([-1, color.range().length - 1])
+          .rangeRound([marginLeft, width - marginRight]);
+
+        svg.append("g")
+          .selectAll("rect")
+          .data(color.range())
+          .join("rect")
+          .attr("x", (d, i) => x(i - 1))
+          .attr("y", marginTop)
+          .attr("width", (d, i) => x(i) - x(i - 1))
+          .attr("height", height - marginTop - marginBottom)
+          .attr("fill", d => d);
+
+        tickValues = d3.range(thresholds.length);
+        tickFormat = i => thresholdFormat(thresholds[i], i);
+      }
+
+      // Ordinal
+      else {
+        x = d3.scaleBand()
+          .domain(color.domain())
+          .rangeRound([marginLeft, width - marginRight]);
+
+        svg.append("g")
+          .selectAll("rect")
+          .data(color.domain())
+          .join("rect")
+          .attr("x", x)
+          .attr("y", marginTop)
+          .attr("width", Math.max(0, x.bandwidth() - 1))
+          .attr("height", height - marginTop - marginBottom)
+          .attr("fill", color);
+
+        tickAdjust = () => { };
+      }
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x)
+          .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined)
+          .tickFormat(typeof tickFormat === "function" ? tickFormat : undefined)
+          .tickSize(tickSize)
+          .tickValues(tickValues))
+        .call(tickAdjust)
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+          .attr("x", marginLeft)
+          .attr("y", marginTop + marginBottom - height - 6)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "start")
+          .attr("font-weight", "bold")
+          .attr("class", "title")
+          .text(title));
+
+      return svg;
+    }
+  </script>
+</body>
+
+</html>
