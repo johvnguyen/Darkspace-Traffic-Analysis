@@ -424,11 +424,6 @@ def compute_clustering(X_sampled, X_reduced, clustering, clustering_parameter):
 
     return labels, possible_labels
 
-# NGUYEN
-@app.get("/")
-async def read_index():
-    return FileResponse("../dashboard/index.html")
-
 @app.get("/favicon.ico")
 def favicon():
     return {"message": "favicon not found"}

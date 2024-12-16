@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8081:8081"  # Expose FastAPI backend on localhost:8081
+
+  frontend:
+    build:
+      context: ./dashboard
+    ports:
+      - "3000:80"  # Expose the frontend on localhost:3000
+    depends_on:
+      - backend  # Ensure backend starts before the frontend
